@@ -9,7 +9,7 @@ import threading
 
 @deprecated("Use the threaded version of the class")
 class _DEP_Network():
-    def __init__(self, w, h):
+    def __init__(self, shape):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
         self.channel = self.connection.channel()
         self.channel.exchange_declare(exchange=constants.ADD_RESOURCE_DISCOVERED,exchange_type='fanout')
@@ -17,7 +17,7 @@ class _DEP_Network():
         self.queue_name = self.result.method.queue
         self.channel.queue_bind(exchange=constants.ADD_RESOURCE_DISCOVERED, queue=self.queue_name)
 
-        self.resource_map = np.zeros((w,h))
+        self.resource_map = np.zeros(shape)
 
         def callback(ch, method, properties, body):
             coords = byte_utils.decode_1d(body)
@@ -27,15 +27,55 @@ class _DEP_Network():
         print("started basic_consume")
         self.channel.basic_consume(self.queue_name, on_message_callback=callback, auto_ack=True)
 
-
-class Network(threading.Thread):
-    def __init__(self, w:int, h:int):
-        super(Network, self).__init__()
+class Reality(threading.Thread):
+    def __init__(self, groundtruth):
+        super(Reality, self).__init__()
+        self.groundtruth = groundtruth
         self._is_interrupted = False
-        self.resource_map = np.zeros((w,h))
 
     def stop(self):
         self._is_interrupted = True
+
+    def run(self) -> float:
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host="localhost"))
+        self.channel = self.connection.channel()
+
+        self.channel.exchange_declare(exchange=constants.REQUEST_GROUNDTRUTH, exchange_type="fanout")
+
+        self.result = self.channel.queue_declare(queue='', exclusive=True)
+        self.queue_name = self.result.method.queue
+        self.channel.queue_bind(exchange=constants.REQUEST_GROUNDTRUTH, queue=self.queue_name)
+
+        for message in self.channel.consume(self.queue_name, inactivity_timeout=1):
+            if self._is_interrupted:
+                break
+            if not message:
+                continue
+            try:
+                method, prop, body = message
+                str_body = body.decode("utf-8").split(" ")
+                queue_name = str_body[0]
+                coords = map(int, str_body[1:])
+                gt_value = self.groundtruth[coords[0]][coords[1]]
+                channel.basic_publish(exchange='', routing_key=queue_name, body=str(gt_value))
+            except Exception as ex:
+                print(ex)
+
+
+
+class Network(threading.Thread):
+    def __init__(self, shape, error=0.05):
+        super(Network, self).__init__()
+        self._is_interrupted = False
+        self.resource_map = np.zeros(shape)
+        self.error = error
+
+    def stop(self):
+        self._is_interrupted = True
+
+    def prospect(self, x, y) -> float:
+        # TODO: need to implement prospecting error
+        return resource_map_gt[x][y]
 
     def run(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
@@ -60,5 +100,5 @@ class Network(threading.Thread):
 
 
 if __name__ == "__main__":
-    network = Network(800,600)
+    network = Network((800,600))
     network.start()

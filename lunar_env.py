@@ -60,6 +60,9 @@ class raw_env(AECEnv, EzPickle):
         self.agent_objs= [Rover(i, speed=self.rover_speed) for i in range(n_rovers)]
         self.agents = [str(agent) for agent in agent_objs]
 
+        self.network = Network(resourec_map.shape)
+        self.network.start()
+
         self.observation_spaces = dict(
             zip(self.agents, [gym.spaces.Box(low=0, high=100, shape=observation_dims, dtype=np.float16] * self.n_rovers)))
 
@@ -86,7 +89,7 @@ class raw_env(AECEnv, EzPickle):
         self.rover_act(self.agent_objs[self.agent_name_mapping[agent]], action)
 
     def rover_act(self, rover, v):
-        
+
 
     def reset(self):
         self._agent_selector.reinit(self.agents)

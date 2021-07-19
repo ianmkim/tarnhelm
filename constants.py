@@ -5,3 +5,5 @@ DATA_WIDTH = 15360
 DATA_HEIGHT = 23040
 
 ADD_RESOURCE_DISCOVERED = "add_resource_discovered"
+REQUEST_GROUNDTRUTH = "request_groundtruth"
+AWAIT_GROUNDTRUTH = "await_groundtruth"
