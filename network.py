@@ -2,9 +2,9 @@ import numpy as np
 import pika
 import constants
 
-import byte_utils
+import utils.byte_utils as byte_utils
 
-from func_utils import deprecated
+from utils.func_utils import deprecated
 import threading
 
 @deprecated("Use the threaded version of the class")
@@ -49,17 +49,16 @@ class Reality(threading.Thread):
         for message in self.channel.consume(self.queue_name, inactivity_timeout=1):
             if self._is_interrupted:
                 break
-            if not message:
+            if not message[2]:
                 continue
-            try:
-                method, prop, body = message
-                str_body = body.decode("utf-8").split(" ")
-                queue_name = str_body[0]
-                coords = map(int, str_body[1:])
-                gt_value = self.groundtruth[coords[0]][coords[1]]
-                channel.basic_publish(exchange='', routing_key=queue_name, body=str(gt_value))
-            except Exception as ex:
-                print(ex)
+            method, prop, body = message
+            str_body = body.decode("utf-8").split(" ")
+            queue_name = str_body[0]
+            coords = list(map(int, str_body[1:]))
+            gt_value = self.groundtruth[coords[0]][coords[1]]
+            self.channel.basic_publish(exchange='', routing_key=queue_name, body=str(gt_value))
+
+        self.connection.close()
 
 
 
@@ -93,10 +92,11 @@ class Network(threading.Thread):
             try:
                 method, properties, body = message
                 coords = byte_utils.decode_1d(body)
-                self.resource_map[coords[0]][coords[1]] = coords[2]
-                print(self.resource_map)
+                self.resource_map[int(coords[0])][int(coords[1])] = coords[2]
             except Exception as ex:
-                print(ex)
+                continue
+
+        self.connection.close()
 
 
 if __name__ == "__main__":
