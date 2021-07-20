@@ -36,7 +36,7 @@ class Rover():
         self.speed = speed
 
     def __str__(self):
-        return str("Rover " + self.id)
+        return str("Rover " + str(self.id))
 
     def report(self, amount):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
@@ -69,6 +69,7 @@ class Rover():
             except Exception as ex:
                 continue
         connection.close()
+        self.report(float_body)
         return float_body
 
     def mine(self):

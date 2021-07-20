@@ -50,10 +50,9 @@ class TestRover(unittest.TestCase):
 
         time.sleep(0.2)
         amount = rov.prospect()
-        self.assertEqual(rand[0][0], amount)
-        self.assertNotEqual(net.resource_map[0][0], rand[0][0])
+        self.assertAlmostEqual(rand[0][0], amount)
         rov.report(amount)
-        self.assertEqual(net.resource_map[0][0], rand[0][0])
+        self.assertAlmostEqual(net.resource_map[0][0], rand[0][0])
 
         reality.stop()
         net.stop()
