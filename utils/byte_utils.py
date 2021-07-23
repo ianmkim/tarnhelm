@@ -13,6 +13,5 @@ def decode_1d(as_bytes):
     dtype = int(as_bytes[0])
     assert dtype >= 0 and dtype < len(dtype_scheme_dict)
     arr = np.frombuffer(as_bytes[1:], dtype=dtype_scheme_dict[dtype])
-    print(arr)
     return arr
 

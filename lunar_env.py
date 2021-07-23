@@ -41,7 +41,7 @@ class raw_env(AECEnv, EzPickle):
     metadata = {"render.modes": ["human", "rgb_array"], 'name': "lunar_v0"}
 
     def __init__(self,
-                 rover_speed=1,
+                 rover_speed=500,
                  n_rovers=10,
                  heightmap_img="data/heightmap.png",
                  resource_map="data/resource_map.npy",
@@ -67,7 +67,7 @@ class raw_env(AECEnv, EzPickle):
         self.heightmap = np.load(heightmap)
         self.observed_resource_map = np.zeros(self.resource_map.shape)
 
-        self.agent_objs= [Rover(i, speed=self.rover_speed, mine_rate=mine_rate, process_rate=process_rate, capacity=capacity) for i in range(n_rovers)]
+        self.agent_objs = [Rover(i, speed=self.rover_speed, mine_rate=mine_rate, process_rate=process_rate, capacity=capacity) for i in range(n_rovers)]
         self.agents = [str(agent) for agent in self.agent_objs]
         self.possible_agents = self.agents[:]
 
@@ -110,13 +110,14 @@ class raw_env(AECEnv, EzPickle):
         action is just a dict of action vectors with keys as agent names
         see def rover_act(self, rover, v) for action vector definition
         """
-
-        agent = self.agent_selection
-        agent_o = self.agent_objs[self.agent_name_mapping[agent]]
-        self.rover_act(anget_o, action)
-        self.cumulative_rewards[agent] += agent_o.processed
-        self._accumulate_rewards
-        self.agent_selection = self._agent_selector.next()
+        for k in action.keys():
+            #agent = self.agent_selection
+            agent = k
+            agent_o = self.agent_objs[self.agent_name_mapping[agent]]
+            self.rover_act(agent_o, action[agent])
+            self._cumulative_rewards[agent] += agent_o.processed
+            self._accumulate_rewards()
+            self.agent_selection = self._agent_selector.next()
 
     def rover_act(self, rover, v:np.array):
         """
@@ -128,7 +129,7 @@ class raw_env(AECEnv, EzPickle):
          process at current xy (0,1)]
         """
         rover.control_raw(v[0:2])
-        actions = v[2:]
+        actions = list(v[2:])
         func_arr = [rover.prospect, rover.mine, rover.process]
         func_arr[actions.index(max(actions))]()
 
@@ -169,7 +170,6 @@ class raw_env(AECEnv, EzPickle):
         obs_vec.extend(res_submap)
         obs_vec = np.array(obs_vec)
         obs_vec = obs_vec.reshape((100, 50))
-        print(obs_vec)
         return obs_vec
 
     def enable_render(self):

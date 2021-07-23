@@ -10,7 +10,7 @@ from utils import byte_utils
 import random
 
 class Rover():
-    def __init__(self, id, x=None, y=None, speed=1, mine_rate=0.1, process_rate=0.1, capacity=0.5):
+    def __init__(self, id, x=None, y=None, speed=500, mine_rate=0.1, process_rate=0.1, capacity=0.5):
         self.id = id
 
         self.surf = pygame.Surface((10,10))
@@ -36,7 +36,7 @@ class Rover():
         self.speed = speed
 
     def __str__(self):
-        return str("Rover " + str(self.id))
+        return str("Rover " + str(self.id) + f" | ({self.x}, {self.y})")
 
     def report(self, amount):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
@@ -88,6 +88,8 @@ class Rover():
         return False
 
     def control_raw(self, direction:np.array):
+        '''
+        # use this later when you revise the direction array
         if direction[0] < 0:
             out_x = max(direction[0], -self.speed)
         if direction[0] >= 0:
@@ -97,7 +99,9 @@ class Rover():
             out_y = max(direction[1], -self.speed)
         if direction[1] >= 0:
             out_y = min(direction[1], self.speed)
+        '''
 
-        return (out_x, out_y)
+        self.x += direction[0] * self.speed
+        self.y += direction[1] * self.speed
 
 
