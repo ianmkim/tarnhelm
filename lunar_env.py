@@ -89,7 +89,7 @@ class raw_env(AECEnv, EzPickle):
                 [gym.spaces.Box(np.array([-1,-1,0,0,0]), np.array([1,1,1,1,1]), dtype=np.uint8)] * self.n_rovers))
 
         pygame.init()
-        self.screen = pygame.Surface((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode([self.screen_width, self.screen_height])
         self.done = False
         self.frames = 0
         self.has_reset = False
@@ -145,6 +145,7 @@ class raw_env(AECEnv, EzPickle):
     def draw(self):
         self.screen.blit(self.heightmap_img, (0,0))
         self.draw_rovers()
+        pygame.display.flip()
 
     def draw_rovers(self):
         for i, rover in enumerate(self.agent_objs):
@@ -173,7 +174,8 @@ class raw_env(AECEnv, EzPickle):
 
     def enable_render(self):
         pygame.display.set_caption("Tarnhelm Simulator")
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        #self.screen = pygame.Surface((self.screen_width, self.screen_height))
+        #pygame.display.set_mode((self.screen_width, self.screen_height))
         self.renderOn = True
         self.draw()
 
