@@ -104,4 +104,7 @@ class Rover():
         self.x += direction[0] * self.speed
         self.y += direction[1] * self.speed
 
+        self.screen_x, self.screen_y = data_to_screen((self.x, self.y))
+
+        self.rect = self.surf.get_rect(center=(self.screen_x, self.screen_y))
 
